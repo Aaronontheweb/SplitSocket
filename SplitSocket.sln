@@ -5,6 +5,17 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitSocket.App", "src\SplitSocket.App\SplitSocket.App.csproj", "{7EB7F53A-9A94-48EB-A7D9-D7D93DE0CEB4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitSocket", "src\SplitSocket\SplitSocket.csproj", "{832E47AD-C5F6-4B14-AF6A-3F14FCEF91EC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{AE1339C0-A35B-4E19-A2C2-8830F0E688C5}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
+		global.json = global.json
+		nuget.config = nuget.config
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +29,9 @@ Global
 		{7EB7F53A-9A94-48EB-A7D9-D7D93DE0CEB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7EB7F53A-9A94-48EB-A7D9-D7D93DE0CEB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7EB7F53A-9A94-48EB-A7D9-D7D93DE0CEB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{832E47AD-C5F6-4B14-AF6A-3F14FCEF91EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{832E47AD-C5F6-4B14-AF6A-3F14FCEF91EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{832E47AD-C5F6-4B14-AF6A-3F14FCEF91EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{832E47AD-C5F6-4B14-AF6A-3F14FCEF91EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
