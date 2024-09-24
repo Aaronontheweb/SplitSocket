@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using static SplitSocket.Internal.ExceptionHelpers;
+
 namespace SplitSocket.Internal;
 
 /// <summary>
@@ -28,7 +28,7 @@ internal static class TaskToApm
             return;
         }
 
-        ThrowIfNull(asyncResult, nameof(asyncResult));
+        ArgumentNullException.ThrowIfNull(asyncResult, nameof(asyncResult));
     }
 
     /// <summary>Processes an IAsyncResult returned by Begin.</summary>
