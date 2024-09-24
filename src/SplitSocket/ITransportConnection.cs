@@ -4,6 +4,8 @@ namespace SplitSocket;
 
 public interface ITransportConnection : IAsyncDisposable
 {
+    string ConnectionId { get; }
+    
     /// <summary>
     /// Triggered when the client connection is closed.
     /// </summary>

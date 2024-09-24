@@ -1,9 +1,10 @@
-﻿using System.Net;
+﻿using System.IO.Pipelines;
+using System.Net;
 using Microsoft.Extensions.Logging;
 
 namespace SplitSocket;
 
-public abstract class TransportBase : ITransportConnection, IConnectionCompleteFeature
+public abstract class TransportBase : ITransportConnection
 {
     protected readonly ILogger Logger;
     private bool _completed;
@@ -16,6 +17,8 @@ public abstract class TransportBase : ITransportConnection, IConnectionCompleteF
     public TransportBase(long id, ILogger logger)
     {
         _id = id;
+        // set connectionId to a hex string representation of the id
+        ConnectionId = _id.ToString("X");
         Logger = logger;
         ConnectionClosedRequested = _connectionClosingCts.Token;
     }
@@ -23,7 +26,12 @@ public abstract class TransportBase : ITransportConnection, IConnectionCompleteF
     /// <summary>
     /// Gets or sets a unique identifier to represent this connection in trace logs.
     /// </summary>
-    public abstract string ConnectionId { get; set; }
+    public string ConnectionId { get; }
+    
+    /// <summary>
+    /// Gets or sets the <see cref="IDuplexPipe"/> that can be used to read or write data on this connection.
+    /// </summary>
+    public abstract IDuplexPipe Transport { get; set; }
    
     public CancellationToken ConnectionClosedRequested { get; protected set; }
     public Task ExecutionTask => _completionTcs.Task;
@@ -56,85 +64,10 @@ public abstract class TransportBase : ITransportConnection, IConnectionCompleteF
     public virtual CancellationToken ConnectionClosed { get; protected set; }
     public abstract EndPoint? LocalEndPoint { get; }
     public abstract EndPoint? RemoteEndPoint { get; }
-    public abstract void Abort();
+    public void Abort()
+    {
+        Abort(new ConnectionAbortedException("The connection was aborted by the application via TransportBase.Abort()."));
+    }
 
     public abstract void Abort(ConnectionAbortedException abortReason);
-    
-    void IConnectionCompleteFeature.OnCompleted(Func<object, Task> callback, object state)
-    {
-        if (_completed)
-        {
-            throw new InvalidOperationException("The connection is already complete.");
-        }
-
-        if (_onCompleted == null)
-        {
-            _onCompleted = new Stack<KeyValuePair<Func<object, Task>, object>>();
-        }
-        _onCompleted.Push(new KeyValuePair<Func<object, Task>, object>(callback, state));
-    }
-    
-    public Task FireOnCompletedAsync()
-    {
-        if (_completed)
-        {
-            throw new InvalidOperationException("The connection is already complete.");
-        }
-
-        _completed = true;
-        var onCompleted = _onCompleted;
-
-        if (onCompleted == null || onCompleted.Count == 0)
-        {
-            return Task.CompletedTask;
-        }
-
-        return CompleteAsyncMayAwait(onCompleted);
-    }
-
-    private Task CompleteAsyncMayAwait(Stack<KeyValuePair<Func<object, Task>, object>> onCompleted)
-    {
-        while (onCompleted.TryPop(out var entry))
-        {
-            try
-            {
-                var task = entry.Key.Invoke(entry.Value);
-                if (!task.IsCompletedSuccessfully)
-                {
-                    return CompleteAsyncAwaited(task, onCompleted);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "An error occurred running an IConnectionCompleteFeature.OnCompleted callback.");
-            }
-        }
-
-        return Task.CompletedTask;
-    }
-
-    private async Task CompleteAsyncAwaited(Task currentTask, Stack<KeyValuePair<Func<object, Task>, object>> onCompleted)
-    {
-        try
-        {
-            await currentTask;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "An error occurred running an IConnectionCompleteFeature.OnCompleted callback.");
-        }
-
-        while (onCompleted.TryPop(out var entry))
-        {
-            try
-            {
-                await entry.Key.Invoke(entry.Value);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "An error occurred running an IConnectionCompleteFeature.OnCompleted callback.");
-            }
-        }
-    }
-
 }
